@@ -1,0 +1,29 @@
+name: Täglicher DCF-Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Jeden Tag um 06:00 UTC (07:00 deutsche Zeit)
+  workflow_dispatch:  # Manuelles Ausführen möglich
+
+jobs:
+  run-dcf-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Repository klonen
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Python einrichten
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: 📦 Abhängigkeiten installieren
+        run: pip install -r requirements.txt
+
+      - name: 🚀 DCF-Bot ausführen
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python dcf_bot.py
