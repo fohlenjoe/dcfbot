@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import openai
 import os
+from huggingface_hub import InferenceClient
 
 app = FastAPI()
 
-# OpenAI API-Key über Environment Variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
+client = InferenceClient(
+    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+    token=HF_TOKEN
+)
 
 class SWOTRequest(BaseModel):
     ticker: str
@@ -19,7 +22,7 @@ class SWOTRequest(BaseModel):
 async def generate_swot(data: SWOTRequest):
     prompt = f"""
     Erstelle eine prägnante SWOT-Analyse für das börsennotierte Unternehmen mit dem Ticker {data.ticker}.
-    
+
     Nutze folgende Finanzdaten:
     - ROE: {data.roe}%
     - Innerer Wert (DCF): {data.dcf} USD
@@ -33,12 +36,5 @@ async def generate_swot(data: SWOTRequest):
     Gib die SWOT-Analyse auf Deutsch als einfache Tabelle mit 4 Punkten pro Kategorie (Stärken, Schwächen, Chancen, Risiken) zurück.
     """
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{ "role": "user", "content": prompt }],
-        max_tokens=500,
-        temperature=0.7
-    )
-
-    swot = response.choices[0].message.content
-    return { "swot": swot }
+    response = client.text_generation(prompt, max_new_tokens=400, temperature=0.7)
+    return { "swot": response }
