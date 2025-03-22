@@ -5,7 +5,7 @@ import os
 
 app = FastAPI()
 
-# Sicher über Umgebungsvariable lesen
+# OpenAI API-Key über Environment Variable
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class SWOTRequest(BaseModel):
